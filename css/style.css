@@ -4,7 +4,11 @@
   box-sizing: border-box;
 }
 
-body {
+html {
+  scroll-behavior: smooth;
+}
+
+.mainbod {
   font-family: sans-serif;
 }
 
@@ -20,23 +24,44 @@ body {
 
 .intro h1 {
   position: absolute;
-  top: 50%;
+  top: 10%;
   left: 50%;
   transform: translate(-50%, -50%);
   font-size: 80px;
-  color: white;
-}
-
-section {
-  height: 100vh;
   color: black;
 }
 
-section h1 {
-  padding-top: 300px;
+.sect1 {
+  height: -10;
+  color: black;
+}
+
+.sect1 h1 {
   text-align: center;
   font-size: 80px;
 }
+
+.button {
+  text-align: center;
+  padding-bottom: 5%;
+}
+
+#qns {
+  padding-top:5%;
+}
+
+table {
+  margin: 0 auto;
+}
+
+td {
+  padding-left: 100px !important;
+  padding-right: 100px !important;
+  padding-bottom: 50px !important;
+}
+
+
+
 
 .pooch-stage {
   position: relative;

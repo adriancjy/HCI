@@ -1,136 +1,348 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
-    <link rel="stylesheet" href="./css/style.css" />
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/css/bootstrap.min.css">
-  
-    <title>HCI</title>
-  </head>
-  <body class="mainbod" onload="myFunc()">
-    <div class="intro">
-      <h1>Did you know</h1>
-      <!-- add in video src -->
-      <video src=""></video>     
-    </div>
-    <section class="sect1">
-        <h1></h1>
-        <div class="button">
-                <a href="#qns"><button type="button" class="btn btn-danger">Click here to find out if you are at danger!</button></a>
-        </div>   
-</section>
+<head>
+<meta charset="utf-8">
+<title>HCI - HealthView</title>
+<script src="http://d3js.org/d3.v3.min.js"></script>
+<script src="http://d3js.org/topojson.v1.min.js"></script>
+<script src="http://d3js.org/queue.v1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+<script src="./src/function.js"></script>
+<script src="./src/particles.js"></script>
+<script src="./src/particleapp.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+<script src="http://labratrevenge.com/d3-tip/javascripts/d3.tip.v0.6.3.js"></script>
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+<link rel="stylesheet" href="./css/style.css" />
+<link rel="stylesheet" href="./css/particlestyle.css" />
+<!-- <link rel="stylesheet" href="./css/stars.css" /> -->
+</head>
+<body>
+    
 
-    <div class="qnsSec" id="qns">
+    <nav class="navbar navbar-dark bg-dark" role="navigation">
+        <div class="navbar-header">
+          <span class="navbar-brand mb-0 h1">HealthView, a global population health infographic</span>
+        </div>
+      </nav>
+      <div class="chartT">
         <table>
           <tr>
             <td>
-              Age range:
+                <button class="tablinks" id="btnOne">London</button>
             </td>
             <td>
-                <div class="dropdown">
-                    <button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown">Choose one option
-                    <span class="caret"></span></button>
-                    <ul class="dropdown-menu">
-                      <li><a href="#">Below 20</a></li>
-                      <li><a href="#">20 - 30</a></li>
-                      <li><a href="#">30 - 40</a></li>
-                      <li><a href="#">40 - 50</a></li>
-                      <li><a href="#">50 - 60</a></li>
-                      <li><a href="#">60 and above</a></li>
-                    </ul>
-                  </div>
+                <button class="tablinks" onclick="btnClicked(event, 2)">Paris</button>
+            </td>
+            <td>
+                <button class="tablinks" onclick="btnClicked(event, 3)">Japan</button>
             </td>
           </tr>
-          <tr>
-              <td>
-                Smoking Habits
-              </td>
-              <td>
-                  <div class="dropdown">
-                      <button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown">Choose one option
-                      <span class="caret"></span></button>
-                      <ul class="dropdown-menu">
-                        <li><a href="#">Do not smoke at all</a></li>
-                        <li><a href="#">One pack in one month</a></li>
-                        <li><a href="#">Two packs in one month</a></li>
-                        <li><a href="#">More than two packs in one month</a></li>
-                      </ul>
-                    </div>
-              </td>
-            </tr>
-            <tr>
-                <td>
-                  Drinking Habits:
-                </td>
-                <td>
-                    <div class="dropdown">
-                        <button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown">Choose one option
-                        <span class="caret"></span></button>
-                        <ul class="dropdown-menu">
-                          <li><a href="#">Do not drink</a></li>
-                          <li><a href="#">Once a year</a></li>
-                          <li><a href="#">Once half a year</a></li>
-                          <li><a href="#">Once every three months</a></li>
-                          <li><a href="#">Once every month</a></li>
-                          <li><a href="#">Once every week</a></li>
-                        </ul>
-                      </div>
-                </td>
-              </tr>
-              <tr>
-                  <td>
-                    Age range:
-                  </td>
-                  <td>
-                      <div class="dropdown">
-                          <button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown">Choose one option
-                          <span class="caret"></span></button>
-                          <ul class="dropdown-menu">
-                            <li><a href="#">Below 20</a></li>
-                            <li><a href="#">20 - 30</a></li>
-                            <li><a href="#">30 - 40</a></li>
-                            <li><a href="#">40 - 50</a></li>
-                            <li><a href="#">50 - 60</a></li>
-                            <li><a href="#">60 and above</a></li>
-                          </ul>
-                        </div>
-                  </td>
-                </tr>
         </table>
       </div>
+
+      <div id="particles-js"></div>
+      
+    
+  <script>
+  var width = 600,
+  height = 500,
+  sens = 0.25,
+  focused;
+
+
+  //Setting projection
+
+  var projection = d3.geo.orthographic()
+  .scale(245)
+  .rotate([0, 0])
+  .translate([width / 2, height / 2])
+  .clipAngle(90);
+
+  var path = d3.geo.path()
+  .projection(projection);
+
+
+  //SVG container
+
+  var svg = d3.select("body").append("svg")
+  .attr("width", width)
+  .attr("height", height);
+  
+  $("svg").css({top: 200, left: 100, position:'absolute'});
+
+  var chartT = d3.select(".chartT").append("div").attr("class", "chart");
+  var tabBtns = document.getElementsByClassName("tablinks");
+  console.log(tabBtns.length);
+  for(i = 0; i < tabBtns.length; i++){
+    tabBtns[i].style.display = "none";
+  }
+  
+
+
+
+  //Adding water
+
+  svg.append("path")
+  .datum({type: "Sphere"})
+  .attr("class", "water")
+  .attr("d", path)
+  .call(d3.behavior.drag()
+  .origin(function() { var r = projection.rotate(); return {x: r[0] / sens, y: -r[1] / sens}; })
+  .on("drag", function() {
+    var rotate = projection.rotate();
+    projection.rotate([d3.event.x * sens, -d3.event.y * sens, rotate[2]]);
+    svg.selectAll("path.land").attr("d", path);
+    svg.selectAll(".focused").classed("focused", focused = false);
+  }));
+
+  //spinning_globe();
+
+
+  var countryTooltip = d3.select("body").append("div").attr("class", "countryTooltip"),
+  chartTooltip = d3.select("body").append("div").attr("class", "chartTooltip"),
+  countryList = d3.select("body").append("select").attr("name", "countries");
+
+  queue()
+  .defer(d3.json, "./data/world.json")
+  .defer(d3.csv, "./data/names.csv")
+  .defer(d3.csv, "./data/allalcoholtypes.csv")
+  .defer(d3.csv, "./data/beer.csv")
+  .defer(d3.csv, "./data/wine.csv")
+  .defer(d3.csv, "./data/spirits.csv")
+  .await(ready);
+
+
+  
+
+  //Main function
+
+  function ready(error, world, countryData, alcoholValues, beerValues, wineValues, spiritValues) {
+
+    
+    var countryById = {},
+    countries = topojson.feature(world, world.objects.countries).features,
+    popList = {},
+    csvList,
+    allalcohol = {},
+    beerList = {},
+    wineList = {},
+    spiritList = {},
+    countryID;
     
 
-    <script
-      src="https://cdnjs.cloudflare.com/ajax/libs/ScrollMagic/2.0.7/ScrollMagic.min.js"
-      integrity="sha256-2p2tRZlPowp3P/04Pw2rqVCSbhyV/IB7ZEVUglrDS/c="
-      crossorigin="anonymous"
-    ></script>
-    <script
-      src="https://cdnjs.cloudflare.com/ajax/libs/ScrollMagic/2.0.7/plugins/animation.gsap.js"
-      integrity="sha256-peenofh8a9TIqKdPKIeQE7mJvuwh+J0To7nslvpj1jI="
-      crossorigin="anonymous"
-    ></script>
-    <script
-      src="https://cdnjs.cloudflare.com/ajax/libs/ScrollMagic/2.0.7/plugins/debug.addIndicators.js"
-      integrity="sha256-31FC/OT6XpfjAhj9FuXjw5/wPXXawCAjJQ29E23/XPk="
-      crossorigin="anonymous"
-    ></script>
-    <script
-      src="https://cdnjs.cloudflare.com/ajax/libs/gsap/2.1.3/TweenMax.min.js"
-      integrity="sha256-lPE3wjN2a7ABWHbGz7+MKBJaykyzqCbU96BJWjio86U="
-      crossorigin="anonymous"
-    ></script>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
-  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/js/bootstrap.min.js"></script>
-    <script src="./src/app.js"></script>
-    <script>
-    function myFunc(){
-      console.log(window.outerHeight);
-     document.getElementById('qns').style.height = window.outerHeight - 100 + "px";
+    //Adding countries to select
+
+    countryData.forEach(function(d) {
+      countryById[d.id] = d.name;
+      
+      //This is the dropdown
+      option = countryList.append("option");
+      option.text(d.name);
+      option.property("value", d.id);
+    });
+
+    alcoholValues.forEach(function(d2) {
+      csvList = [
+      d2["2016"], 
+      d2["2015"],
+      d2["2014"],
+      d2["2013"],
+      d2["2012"],
+      d2["2011"],
+      d2["2010"]
+      ];
+      allalcohol[d2.id] = csvList;
+    });
+
+    beerValues.forEach(function(d2) {
+      csvList = [
+      d2["2016"], 
+      d2["2015"],
+      d2["2014"],
+      d2["2013"],
+      d2["2012"],
+      d2["2011"],
+      d2["2010"]
+      ];
+      beerList[d2.id] = csvList;
+    });
+
+    wineValues.forEach(function(d2) {
+      csvList = [
+      d2["2016"], 
+      d2["2015"],
+      d2["2014"],
+      d2["2013"],
+      d2["2012"],
+      d2["2011"],
+      d2["2010"]
+      ];
+      wineList[d2.id] = csvList;
+    });
+
+    spiritValues.forEach(function(d2) {
+      csvList = [
+      d2["2016"], 
+      d2["2015"],
+      d2["2014"],
+      d2["2013"],
+      d2["2012"],
+      d2["2011"],
+      d2["2010"]
+      ];
+      spiritList[d2.id] = csvList;
+    });
+  
+
+    //Drawing countries on the globe
+    var world = svg.selectAll("path.land")
+    .data(countries)
+    .enter().append("path")
+    .attr("class", "land")
+    .attr("d", path)
+
+    //Drag event
+
+    .call(d3.behavior.drag()
+      .origin(function() { var r = projection.rotate(); return {x: r[0] / sens, y: -r[1] / sens}; })
+      .on("drag", function() {
+        var rotate = projection.rotate();
+        projection.rotate([d3.event.x * sens, -d3.event.y * sens, rotate[2]]);
+        svg.selectAll("path.land").attr("d", path);
+        svg.selectAll(".focused").classed("focused", focused = false);
+      }))
+
+    //Mouse events
+    .on("click", function(d){
+      countryId = d.id;
+      d3.select(".chartT").select("#chart").transition().duration(1000).style("opacity", "0").remove();
+      chartT.html("<div id='chart'></div>");
+        chartT
+      .style("display", "block")
+      .style("opacity", 1)
+      for(i = 0; i < tabBtns.length; i++){
+        tabBtns[i].style.display = "block";
+      }
+      renderChart(allalcohol[d.id], beerList[d.id], wineList[d.id], spiritList[d.id], countryById[d.id], 0);
+      rotateMe(d)
+      
+    })
+    .on("mouseout", function(d) {
+      countryTooltip.style("opacity", 0)
+      .style("display", "none");
+    })
+    .on("mouseover", function(d) {
+        countryTooltip.text(countryById[d.id])
+      .style("left", (d3.event.pageX + 7) + "px")
+      .style("top", (d3.event.pageY - 15) + "px")
+      .style("display", "block")
+      .style("opacity", 1);
+    });
+
+    //add in onclick for other button and more data.
+    d3.select("#btnOne")
+    .on("click", function(d){
+    console.log(allalcohol);
+    });
+
+    
+
+
      
-    }
-    </script>
-  </body>
+     var rotateMe =  function(d) {
+      var rotate = projection.rotate(),
+      focusedCountry = countryClick(countries, d.id),
+      p = d3.geo.centroid(focusedCountry);
+
+      svg.selectAll(".focused").classed("focused", focused = false);
+  
+    //Globe rotating
+
+    (function transition() {
+      d3.transition()
+      .duration(2500)
+      .tween("rotate", function() {
+        var r = d3.interpolate(projection.rotate(), [-p[0], -p[1]]);
+        return function(t) {
+          projection.rotate(r(t));
+          svg.selectAll("path").attr("d", path)
+          .classed("focused", function(d, i) { return d.id == focusedCountry.id ? focused = d : false; });
+        };
+      })
+      })();
+    };
+
+    
+
+    //Country focus on option select
+
+    d3.select("select").on("change", function() {
+      var rotate = projection.rotate(),
+      focusedCountry = country(countries, this),
+      p = d3.geo.centroid(focusedCountry);
+      svg.selectAll(".focused").classed("focused", focused = false);
+  
+    //Globe rotating
+
+    (function transition() {
+      d3.transition()
+      .duration(2500)
+      .tween("rotate", function() {
+        var r = d3.interpolate(projection.rotate(), [-p[0], -p[1]]);
+        return function(t) {
+          projection.rotate(r(t));
+          svg.selectAll("path").attr("d", path)
+          .classed("focused", function(d, i) { return d.id == focusedCountry.id ? focused = d : false; });
+        };
+      })
+      })();
+    });
+
+    function country(cnt, sel) { 
+      for(var i = 0, l = cnt.length; i < l; i++) {
+        if(cnt[i].id == sel.value) {return cnt[i];}
+      }
+    };
+
+    function countryClick(cnt, sel) { 
+      for(var i = 0, l = cnt.length; i < l; i++) {
+        if(cnt[i].id == sel) {return cnt[i];}
+      }
+    };
+
+  };
+
+  function spinning_globe(){
+   d3.timer(function() {
+      // get current time
+      var dt = Date.now() - time;
+      // get the new position from modified projection function
+      projection.rotate([rotate[0] + velocity[0] * dt, rotate[1] + velocity[1] * dt]);
+      // update cities position = redraw
+      svg.selectAll("path.land").attr("d", path);
+   });
+}
+
+function btnClicked(evt, btnNo){
+  if(btnNo == 1){
+    d3.select(".chartT").select("#chart").transition().duration(1000).style("opacity", "0").remove();
+      chartT.html("<div id='chart'></div>");
+        chartT
+      .style("display", "block")
+      .style("opacity", 1)
+      //renderChart(allalcohol[d.id], beerList[d.id], wineList[d.id], spiritList[d.id], countryById[d.id], 1);
+  }else if(btnNo == 2){
+
+  }else{
+
+  }
+}
+
+
+
+
+
+  </script>
+</body>
 </html>

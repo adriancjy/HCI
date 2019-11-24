@@ -29,13 +29,16 @@
         <table>
           <tr>
             <td>
-                <button class="tablinks" id="btnOne">London</button>
+                <button class="btn btn-info" id="btnOne" >Alcohol consumption</button>
             </td>
             <td>
-                <button class="tablinks" onclick="btnClicked(event, 2)">Paris</button>
+                <button class="btn btn-info" id="btnTwo" >Obesity</button>
             </td>
             <td>
-                <button class="tablinks" onclick="btnClicked(event, 3)">Japan</button>
+                <button class="btn btn-info" id="btnThree" >Insufficient activity</button>
+            </td>
+            <td>
+              <button class="btn btn-danger" id="closeBtn" onclick="closeChart()">X</button>
             </td>
           </tr>
         </table>
@@ -49,6 +52,11 @@
   height = 500,
   sens = 0.25,
   focused;
+
+  // Configuration for the spinning effect
+    var time = Date.now();
+    var rotate = [0, 0];
+    var velocity = [.015, -0];
 
 
   //Setting projection
@@ -72,11 +80,14 @@
   $("svg").css({top: 200, left: 100, position:'absolute'});
 
   var chartT = d3.select(".chartT").append("div").attr("class", "chart");
-  var tabBtns = document.getElementsByClassName("tablinks");
-  console.log(tabBtns.length);
+  var tabBtns = document.getElementsByClassName("btn btn-info");
   for(i = 0; i < tabBtns.length; i++){
     tabBtns[i].style.display = "none";
   }
+  var closeBtn = document.getElementById("closeBtn");
+  closeBtn.style.display = "none";
+
+  $("#closeBtn").css({left: 10000});
   
 
 
@@ -96,12 +107,13 @@
     svg.selectAll(".focused").classed("focused", focused = false);
   }));
 
-  //spinning_globe();
-
+  spinning_globe();
+  //stopGlobe();
 
   var countryTooltip = d3.select("body").append("div").attr("class", "countryTooltip"),
   chartTooltip = d3.select("body").append("div").attr("class", "chartTooltip"),
   countryList = d3.select("body").append("select").attr("name", "countries");
+  var optionCountry;
 
   queue()
   .defer(d3.json, "./data/world.json")
@@ -110,6 +122,9 @@
   .defer(d3.csv, "./data/beer.csv")
   .defer(d3.csv, "./data/wine.csv")
   .defer(d3.csv, "./data/spirits.csv")
+  .defer(d3.csv, "./data/allobesity.csv")
+  .defer(d3.csv, "./data/maleobesity.csv")
+  .defer(d3.csv, "./data/femaleobesity.csv")
   .await(ready);
 
 
@@ -117,17 +132,20 @@
 
   //Main function
 
-  function ready(error, world, countryData, alcoholValues, beerValues, wineValues, spiritValues) {
+  function ready(error, world, countryData, alcoholValues, beerValues, wineValues, spiritValues, allObesityValues, maleObesityValues, femaleObesityValues) {
 
     
     var countryById = {},
-    countries = topojson.feature(world, world.objects.countries).features,
-    popList = {},
+    countries = topojson.feature(world, world.objects.countries).features;
+    var popList = {},
     csvList,
     allalcohol = {},
     beerList = {},
     wineList = {},
     spiritList = {},
+    allObesityList = {},
+    maleObesityList = {},
+    femaleObesityList = {},
     countryID;
     
 
@@ -193,6 +211,45 @@
       ];
       spiritList[d2.id] = csvList;
     });
+
+    allObesityValues.forEach(function(d) {
+      csvList = [
+      d["2016"], 
+      d["2015"],
+      d["2014"],
+      d["2013"],
+      d["2012"],
+      d["2011"],
+      d["2010"]
+      ];
+      allObesityList[d.id] = csvList;
+    });
+
+    maleObesityValues.forEach(function(d) {
+      csvList = [
+      d["2016"], 
+      d["2015"],
+      d["2014"],
+      d["2013"],
+      d["2012"],
+      d["2011"],
+      d["2010"]
+      ];
+      maleObesityList[d.id] = csvList;
+    });
+
+    femaleObesityValues.forEach(function(d) {
+      csvList = [
+      d["2016"], 
+      d["2015"],
+      d["2014"],
+      d["2013"],
+      d["2012"],
+      d["2011"],
+      d["2010"]
+      ];
+      femaleObesityList[d.id] = csvList;
+    });
   
 
     //Drawing countries on the globe
@@ -215,8 +272,8 @@
 
     //Mouse events
     .on("click", function(d){
-      countryId = d.id;
-      d3.select(".chartT").select("#chart").transition().duration(1000).style("opacity", "0").remove();
+      $(".chartT").css({opacity: 1});
+      countryID = d.id;
       chartT.html("<div id='chart'></div>");
         chartT
       .style("display", "block")
@@ -224,8 +281,9 @@
       for(i = 0; i < tabBtns.length; i++){
         tabBtns[i].style.display = "block";
       }
-      renderChart(allalcohol[d.id], beerList[d.id], wineList[d.id], spiritList[d.id], countryById[d.id], 0);
-      rotateMe(d)
+      closeBtn.style.display = "block";
+      renderAlcoholChart(allalcohol[d.id], beerList[d.id], wineList[d.id], spiritList[d.id], countryById[d.id]);
+      rotateMe(d);
       
     })
     .on("mouseout", function(d) {
@@ -240,21 +298,34 @@
       .style("opacity", 1);
     });
 
-    //add in onclick for other button and more data.
+    //add in onclick for other button and more data. Use countryID to access csv stuff.
     d3.select("#btnOne")
     .on("click", function(d){
-    console.log(allalcohol);
+      d3.select(".chartT").select("#chart").transition().duration(1000).style("opacity", "0").remove();
+      chartT.html("<div id='chart'></div>");
+        chartT
+      .style("display", "block")
+      .style("opacity", 1)
+      renderAlcoholChart(allalcohol[countryID], beerList[countryID], wineList[countryID], spiritList[countryID], countryById[countryID]);
     });
+
+    d3.select("#btnTwo")
+    .on("click", function(d){
+      d3.select(".chartT").select("#chart").transition().duration(1000).style("opacity", "0").remove();
+      chartT.html("<div id='chart'></div>");
+        chartT
+      .style("display", "block")
+      .style("opacity", 1)
+      renderObesityChart(allObesityList[countryID], maleObesityList[countryID], femaleObesityList[countryID], countryById[countryID]);
+    });
+
 
     
 
-
-     
      var rotateMe =  function(d) {
       var rotate = projection.rotate(),
       focusedCountry = countryClick(countries, d.id),
       p = d3.geo.centroid(focusedCountry);
-
       svg.selectAll(".focused").classed("focused", focused = false);
   
     //Globe rotating
@@ -281,8 +352,9 @@
       var rotate = projection.rotate(),
       focusedCountry = country(countries, this),
       p = d3.geo.centroid(focusedCountry);
+      optionCountry = focusedCountry.id;
       svg.selectAll(".focused").classed("focused", focused = false);
-  
+      
     //Globe rotating
 
     (function transition() {
@@ -310,7 +382,6 @@
         if(cnt[i].id == sel) {return cnt[i];}
       }
     };
-
   };
 
   function spinning_globe(){
@@ -321,28 +392,19 @@
       projection.rotate([rotate[0] + velocity[0] * dt, rotate[1] + velocity[1] * dt]);
       // update cities position = redraw
       svg.selectAll("path.land").attr("d", path);
+      
    });
 }
-
-function btnClicked(evt, btnNo){
-  if(btnNo == 1){
-    d3.select(".chartT").select("#chart").transition().duration(1000).style("opacity", "0").remove();
-      chartT.html("<div id='chart'></div>");
-        chartT
-      .style("display", "block")
-      .style("opacity", 1)
-      //renderChart(allalcohol[d.id], beerList[d.id], wineList[d.id], spiritList[d.id], countryById[d.id], 1);
-  }else if(btnNo == 2){
-
-  }else{
-
-  }
+//fix
+function stopGlobe(){
+ projection.rotate();
 }
 
 
-
-
-
+function closeChart(){
+  d3.select(".chartT").transition().duration(1000).style("opacity", "0");
+      
+}
   </script>
 </body>
 </html>

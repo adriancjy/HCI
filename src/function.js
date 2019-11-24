@@ -1,4 +1,4 @@
-function renderChart(alldata, beerData, wineData, spiritData, countryName, buttonClicked){
+function renderAlcoholChart(alldata, beerData, wineData, spiritData, countryName){
   var options = {
     chart: {
       height: 350,
@@ -152,54 +152,149 @@ function renderChart(alldata, beerData, wineData, spiritData, countryName, butto
     }
   };
 
-  var options2 = {
-    chart: {
-        height: 350,
-        width: 700,
-        type: 'line',
-        zoom: {
-            enabled: false
-        }
-    },
-    series: [{
-        name: "Desktops",
-        data: [10, 41, 35, 51, 49, 62, 69, 91, 148]
-    }],
-    dataLabels: {
-        enabled: false
-    },
-    stroke: {
-        curve: 'straight'
-    },
-    title: {
-        text: 'Product Trends by Month',
-        align: 'left'
-    },
-    grid: {
-        row: {
-            colors: ['#f3f3f3', 'transparent'], // takes an array which will be repeated on columns
-            opacity: 0.5
-        },
-    },
-    xaxis: {
-        categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep'],
-    }
-};
 
-var optSelected;
-if(buttonClicked == 0){
-optSelected = options;
-} else if(buttonClicked == 1){
-  optSelected = options2;
+  var chart = new ApexCharts(
+    document.querySelector("#chart"),
+    options
+);
+
+
+
+chart.render();
+
 }
 
+function renderObesityChart(alldata, maleData, femaleData, countryName){
+  var options = {
+    chart: {
+      height: 350,
+      width: 700,
+      type: 'line',
+      stacked: false,
+    },
+    dataLabels: {
+      enabled: false
+    },
+    series: [{
+      name: 'Obesity among all genders',
+      type: 'column',
+      data: [alldata[6], alldata[5], alldata[4], alldata[3], alldata[2], alldata[1], alldata[0]]
+    }, 
+    {
+      name: 'Obesity in Males',
+      type: 'column',
+      data: [maleData[6], maleData[5], maleData[4], maleData[3], maleData[2], maleData[1], maleData[0]]
+    }, 
+    {
+      name: 'Obesity in Females',
+      type: 'column',
+      data: [femaleData[6], femaleData[5], femaleData[4], femaleData[3], femaleData[2], femaleData[1], femaleData[0]]
+    }
+    // {
+    //   name: 'Revenue',
+    //   type: 'line',
+    //   data: [20, 29, 37, 36, 44, 45, 50, 58]
+    // }
+  ],
+    stroke: {
+      width: 6
+    },
+    title: {
+      text: 'Prevalence of obesity among adults with BMI ≥ 30 for ' + countryName,
+      align: 'left',
+      offsetX: 110
+    },
+    xaxis: {
+      categories: [2010, 2011, 2012, 2013, 2014, 2015, 2016],
+    },
+    yaxis: [
+      {
+        axisTicks: {
+          show: true,
+        },
+        axisBorder: {
+          show: true,
+          color: '#008FFB'
+        },
+        labels: {
+          style: {
+            color: '#008FFB',
+          }
+        },
+        title: {
+          text: "Prevalence of obesity among all genders",
+          style: {
+            color: '#008FFB',
+          }
+        },
+        tooltip: {
+          enabled: true
+        }
+      },
 
-
+      {
+        seriesName: 'Obesity in Males',
+        opposite: true,
+        axisTicks: {
+          show: true,
+        },
+        axisBorder: {
+          show: true,
+          color: '#00E396'
+        },
+        labels: {
+          style: {
+            color: '#00E396',
+          }
+        },
+        title: {
+          text: "Prevalence of obesity among Males",
+          style: {
+            color: '#00E396',
+          }
+        },
+      },
+      {
+        seriesName: 'Obesity in Females',
+        opposite: true,
+        axisTicks: {
+          show: true,
+        },
+        axisBorder: {
+          show: true,
+          color: '#FEB019'
+        },
+        labels: {
+          style: {
+            color: '#FEB019',
+          },
+        },
+        title: {
+          text: "Prevalence of obesity among Females",
+          style: {
+            color: '#FEB019',
+          }
+        }
+      }
+    ],
+    tooltip: {
+      fixed: {
+        enabled: true,
+        position: 'topLeft', // topRight, topLeft, bottomRight, bottomLeft
+        offsetY: 30,
+        offsetX: 60
+      },
+    },
+    legend: {
+      horizontalAlign: 'left',
+      offsetX: 40
+    }
+  };
 
 
   var chart = new ApexCharts(
     document.querySelector("#chart"),
-    optSelected
+    options
 );
 
 
@@ -208,45 +303,8 @@ chart.render();
 
 }
 
-function test(){
-  var options2 = {
-    chart: {
-        height: 350,
-        width: 700,
-        type: 'line',
-        zoom: {
-            enabled: false
-        }
-    },
-    series: [{
-        name: "Desktops",
-        data: [10, 41, 35, 51, 49, 62, 69, 91, 148]
-    }],
-    dataLabels: {
-        enabled: false
-    },
-    stroke: {
-        curve: 'straight'
-    },
-    title: {
-        text: 'Product Trends by Month',
-        align: 'left'
-    },
-    grid: {
-        row: {
-            colors: ['#f3f3f3', 'transparent'], // takes an array which will be repeated on columns
-            opacity: 0.5
-        },
-    },
-    xaxis: {
-        categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep'],
-    }
-}
-var chart = new ApexCharts(
-  document.querySelector("#chart"),
-  options2
-);
-chart.render();
 
-}
+
+
+
 

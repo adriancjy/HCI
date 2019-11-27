@@ -8,14 +8,14 @@
 <script src="http://d3js.org/queue.v1.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 <script src="./src/function.js"></script>
-<script src="./src/particles.js"></script>
-<script src="./src/particleapp.js"></script>
+<!-- <script src="./src/particles.js"></script>
+<script src="./src/particleapp.js"></script> -->
+<script src="https://d3js.org/d3-timer.v1.min.js"></script>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
 <script src="http://labratrevenge.com/d3-tip/javascripts/d3.tip.v0.6.3.js"></script>
 <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
 <link rel="stylesheet" href="./css/style.css" />
-<link rel="stylesheet" href="./css/particlestyle.css" />
-<!-- <link rel="stylesheet" href="./css/stars.css" /> -->
+<!-- <link rel="stylesheet" href="./css/particlestyle.css" /> -->
 </head>
 <body>
     
@@ -26,6 +26,7 @@
         </div>
       </nav>
       <div class="chartT">
+          <span id='closeBtn' class="badge badge-danger" onclick="closeChart()">X</span>
         <table>
           <tr>
             <td>
@@ -36,9 +37,6 @@
             </td>
             <td>
                 <button class="btn btn-info" id="btnThree" >Insufficient activity</button>
-            </td>
-            <td>
-              <button class="btn btn-danger" id="closeBtn" onclick="closeChart()">X</button>
             </td>
           </tr>
         </table>
@@ -51,12 +49,15 @@
   var width = 600,
   height = 500,
   sens = 0.25,
-  focused;
+  focused,
+  focusedCountryList = [];
 
   // Configuration for the spinning effect
     var time = Date.now();
     var rotate = [0, 0];
     var velocity = [.015, -0];
+    var timer;
+    
 
 
   //Setting projection
@@ -101,23 +102,25 @@
   .call(d3.behavior.drag()
   .origin(function() { var r = projection.rotate(); return {x: r[0] / sens, y: -r[1] / sens}; })
   .on("drag", function() {
+    
     var rotate = projection.rotate();
     projection.rotate([d3.event.x * sens, -d3.event.y * sens, rotate[2]]);
     svg.selectAll("path.land").attr("d", path);
-    svg.selectAll(".focused").classed("focused", focused = false);
   }));
 
   spinning_globe();
-  //stopGlobe();
 
   var countryTooltip = d3.select("body").append("div").attr("class", "countryTooltip"),
   chartTooltip = d3.select("body").append("div").attr("class", "chartTooltip"),
-  countryList = d3.select("body").append("select").attr("name", "countries");
+  countryList = d3.select("body").append("select").attr("name", "countries").attr("id", "selectCountry");
   var optionCountry;
+  var r = projection.rotate()[0];//old state
+  var k = projection.rotate()[1];//old state
 
   queue()
   .defer(d3.json, "./data/world.json")
   .defer(d3.csv, "./data/names.csv")
+  .defer(d3.csv, "./data/region.csv")
   .defer(d3.csv, "./data/allalcoholtypes.csv")
   .defer(d3.csv, "./data/beer.csv")
   .defer(d3.csv, "./data/wine.csv")
@@ -125,6 +128,9 @@
   .defer(d3.csv, "./data/allobesity.csv")
   .defer(d3.csv, "./data/maleobesity.csv")
   .defer(d3.csv, "./data/femaleobesity.csv")
+  .defer(d3.csv, "./data/allinsufficient.csv")
+  .defer(d3.csv, "./data/maleinsufficient.csv")
+  .defer(d3.csv, "./data/femaleinsufficient.csv")
   .await(ready);
 
 
@@ -132,13 +138,14 @@
 
   //Main function
 
-  function ready(error, world, countryData, alcoholValues, beerValues, wineValues, spiritValues, allObesityValues, maleObesityValues, femaleObesityValues) {
+  function ready(error, world, countryData, regionData, alcoholValues, beerValues, wineValues, spiritValues, allObesityValues, maleObesityValues, femaleObesityValues, allInsufValues, maleInsufValues, femaleInsufValues) {
 
     
     var countryById = {},
     countries = topojson.feature(world, world.objects.countries).features;
     var popList = {},
     csvList,
+    countryName,
     allalcohol = {},
     beerList = {},
     wineList = {},
@@ -146,6 +153,10 @@
     allObesityList = {},
     maleObesityList = {},
     femaleObesityList = {},
+    allInsufList = {},
+    maleInsufList = {},
+    femaleInsufList = {},
+    regionList = {},
     countryID;
     
 
@@ -250,7 +261,56 @@
       ];
       femaleObesityList[d.id] = csvList;
     });
-  
+
+    allInsufValues.forEach(function(d) {
+      csvList = [
+      d["2016"], 
+      d["2015"],
+      d["2014"],
+      d["2013"],
+      d["2012"],
+      d["2011"],
+      d["2010"]
+      ];
+      allInsufList[d.id] = csvList;
+    });
+
+    maleInsufValues.forEach(function(d) {
+      csvList = [
+      d["2016"], 
+      d["2015"],
+      d["2014"],
+      d["2013"],
+      d["2012"],
+      d["2011"],
+      d["2010"]
+      ];
+      maleInsufList[d.id] = csvList;
+    });
+
+    femaleInsufValues.forEach(function(d) {
+      csvList = [
+      d["2016"], 
+      d["2015"],
+      d["2014"],
+      d["2013"],
+      d["2012"],
+      d["2011"],
+      d["2010"]
+      ];
+      femaleInsufList[d.id] = csvList;
+    });
+
+    regionData.forEach(function(d) {
+      csvList = [
+      d["region"], 
+      d["population"],
+      d["area"],
+      d["popdense"],
+      d["gdp"]
+      ];
+      regionList[d.id] = csvList;
+    });
 
     //Drawing countries on the globe
     var world = svg.selectAll("path.land")
@@ -272,7 +332,7 @@
 
     //Mouse events
     .on("click", function(d){
-      $(".chartT").css({opacity: 1});
+      $(".chartT").css({display: "block"});
       countryID = d.id;
       chartT.html("<div id='chart'></div>");
         chartT
@@ -282,8 +342,58 @@
         tabBtns[i].style.display = "block";
       }
       closeBtn.style.display = "block";
-      renderAlcoholChart(allalcohol[d.id], beerList[d.id], wineList[d.id], spiritList[d.id], countryById[d.id]);
+      if(focusedCountryList.length >= 3 ){
+        focusedCountryList = [];
+      }
+      if(!focusedCountryList.includes(d.id) || focusedCountryList.length == 0){
+        focusedCountryList.push(d.id);
+      }
+      if(focusedCountryList.length == 1){
+        renderAlcoholChart(allalcohol[d.id], beerList[d.id], wineList[d.id], spiritList[d.id], countryById[d.id]);
+      }else if(focusedCountryList.length == 2){
+        var beer = [
+        beerList[focusedCountryList[0]],
+        beerList[focusedCountryList[1]]
+        ];
+        var wine = [
+        wineList[focusedCountryList[0]],
+        wineList[focusedCountryList[1]]
+        ];
+        var spirit = [
+        spiritList[focusedCountryList[0]],
+        spiritList[focusedCountryList[1]],
+        ];
+        countryName = [
+          countryById[focusedCountryList[0]],
+          countryById[focusedCountryList[1]],
+        ];
+        renderAlcoholTwo(allalcohol[focusedCountryList[0]], allalcohol[focusedCountryList[1]], countryName, beer, wine, spirit);
+      }else if(focusedCountryList.length == 3){
+        countryName = [
+          countryById[focusedCountryList[0]],
+          countryById[focusedCountryList[1]],
+          countryById[focusedCountryList[2]]
+        ];
+        var beer = [
+        beerList[focusedCountryList[0]],
+        beerList[focusedCountryList[1]],
+        beerList[focusedCountryList[2]]
+        ];
+        var wine = [
+        wineList[focusedCountryList[0]],
+        wineList[focusedCountryList[1]],
+        wineList[focusedCountryList[2]]
+        ];
+        var spirit = [
+        spiritList[focusedCountryList[0]],
+        spiritList[focusedCountryList[1]],
+        spiritList[focusedCountryList[2]]
+        ];
+        renderAlcoholThree(allalcohol[focusedCountryList[0]], allalcohol[focusedCountryList[1]], allalcohol[focusedCountryList[2]], countryName, beer, wine, spirit);
+
+      }
       rotateMe(d);
+      stopGlobe();
       
     })
     .on("mouseout", function(d) {
@@ -291,7 +401,7 @@
       .style("display", "none");
     })
     .on("mouseover", function(d) {
-        countryTooltip.text(countryById[d.id])
+      countryTooltip.html("<div><table><tr><td><b>" + countryById[d.id] + "</b></td></tr><tr><td>Region: </td><td>" + regionList[d.id][0] + "</td></tr><tr><td>Population: </td><td>" + regionList[d.id][1] + "</td></tr><tr><td>Area(/sq mi): </td><td>" + regionList[d.id][2] + "</td></tr><tr><td>Population Density(/sq mi): </td><td>" + regionList[d.id][3] + "</td></tr><tr><td>Gross Domestic Product(GDP): $</td><td>" + regionList[d.id][4] + "</td></tr></table></div>")
       .style("left", (d3.event.pageX + 7) + "px")
       .style("top", (d3.event.pageY - 15) + "px")
       .style("display", "block")
@@ -306,7 +416,40 @@
         chartT
       .style("display", "block")
       .style("opacity", 1)
-      renderAlcoholChart(allalcohol[countryID], beerList[countryID], wineList[countryID], spiritList[countryID], countryById[countryID]);
+      if(focusedCountryList.length == 1){
+        renderAlcoholChart(allalcohol[countryID], beerList[countryID], wineList[countryID], spiritList[countryID], countryById[countryID]);
+      }else if(focusedCountryList.length == 2){
+        var beer = [
+        beerList[focusedCountryList[0]],
+        beerList[focusedCountryList[1]]
+        ];
+        var wine = [
+        wineList[focusedCountryList[0]],
+        wineList[focusedCountryList[1]]
+        ];
+        var spirit = [
+        spiritList[focusedCountryList[0]],
+        spiritList[focusedCountryList[1]],
+        ];
+        renderAlcoholTwo(allalcohol[focusedCountryList[0]], allalcohol[focusedCountryList[1]], countryName, beer, wine, spirit);
+      }else if(focusedCountryList.length == 3){
+        var beer = [
+        beerList[focusedCountryList[0]],
+        beerList[focusedCountryList[1]],
+        beerList[focusedCountryList[2]]
+        ];
+        var wine = [
+        wineList[focusedCountryList[0]],
+        wineList[focusedCountryList[1]],
+        wineList[focusedCountryList[2]]
+        ];
+        var spirit = [
+        spiritList[focusedCountryList[0]],
+        spiritList[focusedCountryList[1]],
+        spiritList[focusedCountryList[2]]
+        ];
+        renderAlcoholThree(allalcohol[focusedCountryList[0]], allalcohol[focusedCountryList[1]], allalcohol[focusedCountryList[2]], countryName, beer, wine, spirit);
+      }
     });
 
     d3.select("#btnTwo")
@@ -316,7 +459,65 @@
         chartT
       .style("display", "block")
       .style("opacity", 1)
-      renderObesityChart(allObesityList[countryID], maleObesityList[countryID], femaleObesityList[countryID], countryById[countryID]);
+      if(focusedCountryList.length == 1){
+        renderObesityChart(allObesityList[countryID], maleObesityList[countryID], femaleObesityList[countryID], countryById[countryID]);
+      }else if(focusedCountryList.length == 2){
+        var male = [
+          maleObesityList[focusedCountryList[0]],
+          maleObesityList[focusedCountryList[1]]
+        ];
+        var female = [
+          femaleObesityList[focusedCountryList[0]],
+          femaleObesityList[focusedCountryList[1]]
+        ];
+        renderObesityTwo(allObesityList[focusedCountryList[0]], allObesityList[focusedCountryList[1]], countryName, male, female);
+      }else if(focusedCountryList.length == 3){
+        var male = [
+          maleObesityList[focusedCountryList[0]],
+          maleObesityList[focusedCountryList[1]],
+          maleObesityList[focusedCountryList[2]]
+        ];
+        var female = [
+          femaleObesityList[focusedCountryList[0]],
+          femaleObesityList[focusedCountryList[1]],
+          femaleObesityList[focusedCountryList[2]]
+        ];
+        renderObesityThree(allObesityList[focusedCountryList[0]], allObesityList[focusedCountryList[1]], allObesityList[focusedCountryList[2]], countryName, male, female);
+      }
+    });
+
+    d3.select("#btnThree")
+    .on("click", function(d){
+      d3.select(".chartT").select("#chart").transition().duration(1000).style("opacity", "0").remove();
+      chartT.html("<div id='chart'></div>");
+        chartT
+      .style("display", "block")
+      .style("opacity", 1)
+      if(focusedCountryList.length == 1){
+        renderInsufficientChart(allInsufList[countryID], maleInsufList[countryID], femaleInsufList[countryID], countryById[countryID]);
+      }else if(focusedCountryList.length == 2){
+        var male = [
+          maleInsufList[focusedCountryList[0]],
+          maleInsufList[focusedCountryList[1]]
+        ];
+        var female = [
+          femaleInsufList[focusedCountryList[0]],
+          femaleInsufList[focusedCountryList[1]]
+        ];
+        renderInsufTwo(allInsufList[focusedCountryList[0]], allInsufList[focusedCountryList[1]], countryName, male, female);
+      }else if(focusedCountryList.length == 3){
+        var male = [
+          maleInsufList[focusedCountryList[0]],
+          maleInsufList[focusedCountryList[1]],
+          maleInsufList[focusedCountryList[2]]
+        ];
+        var female = [
+          femaleInsufList[focusedCountryList[0]],
+          femaleInsufList[focusedCountryList[1]],
+          femaleInsufList[focusedCountryList[2]],
+        ];
+        renderInsufThree(allInsufList[focusedCountryList[0]], allInsufList[focusedCountryList[1]], allInsufList[focusedCountryList[2]], countryName, male, female);
+      }
     });
 
 
@@ -327,6 +528,7 @@
       focusedCountry = countryClick(countries, d.id),
       p = d3.geo.centroid(focusedCountry);
       svg.selectAll(".focused").classed("focused", focused = false);
+      
   
     //Globe rotating
 
@@ -338,7 +540,17 @@
         return function(t) {
           projection.rotate(r(t));
           svg.selectAll("path").attr("d", path)
-          .classed("focused", function(d, i) { return d.id == focusedCountry.id ? focused = d : false; });
+          .classed("focused", function(d) {
+            for(i = 0; i < focusedCountryList.length; i++){
+              
+              if(d.id == focusedCountryList[i]){
+                return focused = d;
+              }
+              if(focusedCountryList.length > 3){
+                return d.id == focusedCountry.id ? focused = d : false;
+              }
+            }            
+           });
         };
       })
       })();
@@ -352,8 +564,20 @@
       var rotate = projection.rotate(),
       focusedCountry = country(countries, this),
       p = d3.geo.centroid(focusedCountry);
-      optionCountry = focusedCountry.id;
+      optionCountry = focusedCountry;
       svg.selectAll(".focused").classed("focused", focused = false);
+      $(".chartT").css({display: "block"});
+      chartT.html("<div id='chart'></div>");
+        chartT
+      .style("display", "block")
+      .style("opacity", 1)
+      for(i = 0; i < tabBtns.length; i++){
+        tabBtns[i].style.display = "block";
+      }
+      closeBtn.style.display = "block";
+      countryID = focusedCountry.id;
+      renderAlcoholChart(allalcohol[focusedCountry.id], beerList[focusedCountry.id], wineList[focusedCountry.id], spiritList[focusedCountry.id], countryById[focusedCountry.id]);
+      stopGlobe();
       
     //Globe rotating
 
@@ -384,27 +608,45 @@
     };
   };
 
+  //Spin the globe at start
   function spinning_globe(){
-   d3.timer(function() {
+   timer = d3.timer(function() {
       // get current time
       var dt = Date.now() - time;
       // get the new position from modified projection function
-      projection.rotate([rotate[0] + velocity[0] * dt, rotate[1] + velocity[1] * dt]);
+      projection.rotate([rotate[0] + velocity[0] * dt, 0]);
       // update cities position = redraw
       svg.selectAll("path.land").attr("d", path);
       
    });
+   
 }
-//fix
+//Stop globe from spinning
 function stopGlobe(){
- projection.rotate();
+ timer.stop();
 }
 
-
+//Close the button
 function closeChart(){
-  d3.select(".chartT").transition().duration(1000).style("opacity", "0");
-      
-}
+  focusedCountryList = [];
+  svg.selectAll(".focused").classed("focused", focused = false);
+  d3.select(".chartT").transition().duration(1000).style("display", "none");
+  setTimeout(function(){ 
+    restartGlobe();
+   }, 1000);
+  }
+
+  //Restart the spinning
+  function restartGlobe() {
+      var time = Date.now();
+      timer.restart(function() {
+        var dt = Date.now() - time;
+        projection.rotate([r + velocity[0] * dt, k]);
+        svg.selectAll("path.land").attr("d", path);
+      });
+    }
+
+
   </script>
 </body>
 </html>

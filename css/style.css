@@ -34,7 +34,7 @@ stroke-width: 1px;
 fill: #33CC33;
 }
 
-select {
+#selectCountry {
 position: absolute;
 top: 100px;
 left: 580px;
@@ -110,3 +110,9 @@ font-family: sans-serif;
 #closeBtn {
   float: right;
 }
+
+#closeBtn:hover{
+  cursor: pointer;
+}
+
+

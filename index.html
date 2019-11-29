@@ -20,11 +20,12 @@
 <body>
     
 
-    <nav class="navbar navbar-dark bg-dark" role="navigation" style="height: 90px">
+    <nav class="navbar navbar-dark bg-dark" role="navigation" style="height: 120px">
         <div class="navbar-header">
-          <span class="navbar-brand mb-0 h1">HealthView, a global population health infographic</span><br>
-          <span class="navText">HealthView is an infographic allowing users to see the prevalence of non-communicable disease's risk factors across the globe.<br>
-            Select up to three countries to compare their statistics.</span>
+          <span class="navbar-brand mb-0 h1"><a style="color: rgb(9, 231, 9)">Health</a><a style="color:#49b1f7">View</a>, a global population health infographic</span><br>
+          <span class="navText"><a style="color: rgb(9, 231, 9); font-size: 20px">[ </a>HealthView is an infographic allowing users to see the prevalence of non-communicable disease's risk factors across the globe.<br>
+            Select up to three countries to compare their statistics.
+             You can also click on the bar in the chart to find out more details<a style="color: #49b1f7; font-size: 20px"> ]</a></span>
         </div>
       </nav>
       <div class="chartT">
@@ -79,7 +80,7 @@
   var svg = d3.select("body").append("svg")
   .attr("width", width)
   .attr("height", height);
-  
+
   $("svg").css({top: 200, left: 100, position:'absolute'});
 
   var chartT = d3.select(".chartT").append("div").attr("class", "chart");
@@ -568,6 +569,12 @@
       p = d3.geo.centroid(focusedCountry);
       optionCountry = focusedCountry;
       svg.selectAll(".focused").classed("focused", focused = false);
+      if(focusedCountryList.length >= 3 ){
+        focusedCountryList = [];
+      }
+      if(!focusedCountryList.includes(focusedCountry.id) || focusedCountryList.length == 0){
+        focusedCountryList.push(focusedCountry.id);
+      }
       $(".chartT").css({display: "block"});
       chartT.html("<div id='chart'></div>");
         chartT
@@ -578,7 +585,50 @@
       }
       closeBtn.style.display = "block";
       countryID = focusedCountry.id;
-      renderAlcoholChart(allalcohol[focusedCountry.id], beerList[focusedCountry.id], wineList[focusedCountry.id], spiritList[focusedCountry.id], countryById[focusedCountry.id]);
+      if(focusedCountryList.length == 1){
+        renderAlcoholChart(allalcohol[focusedCountry.id], beerList[focusedCountry.id], wineList[focusedCountry.id], spiritList[focusedCountry.id], countryById[focusedCountry.id]);
+      }else if(focusedCountryList.length == 2){
+        var beer = [
+        beerList[focusedCountryList[0]],
+        beerList[focusedCountryList[1]]
+        ];
+        var wine = [
+        wineList[focusedCountryList[0]],
+        wineList[focusedCountryList[1]]
+        ];
+        var spirit = [
+        spiritList[focusedCountryList[0]],
+        spiritList[focusedCountryList[1]],
+        ];
+        countryName = [
+          countryById[focusedCountryList[0]],
+          countryById[focusedCountryList[1]],
+        ];
+        renderAlcoholTwo(allalcohol[focusedCountryList[0]], allalcohol[focusedCountryList[1]], countryName, beer, wine, spirit);
+      }else if(focusedCountryList.length == 3){
+        countryName = [
+          countryById[focusedCountryList[0]],
+          countryById[focusedCountryList[1]],
+          countryById[focusedCountryList[2]]
+        ];
+        var beer = [
+        beerList[focusedCountryList[0]],
+        beerList[focusedCountryList[1]],
+        beerList[focusedCountryList[2]]
+        ];
+        var wine = [
+        wineList[focusedCountryList[0]],
+        wineList[focusedCountryList[1]],
+        wineList[focusedCountryList[2]]
+        ];
+        var spirit = [
+        spiritList[focusedCountryList[0]],
+        spiritList[focusedCountryList[1]],
+        spiritList[focusedCountryList[2]]
+        ];
+        renderAlcoholThree(allalcohol[focusedCountryList[0]], allalcohol[focusedCountryList[1]], allalcohol[focusedCountryList[2]], countryName, beer, wine, spirit);
+
+      }
       stopGlobe();
       
     //Globe rotating
@@ -591,7 +641,17 @@
         return function(t) {
           projection.rotate(r(t));
           svg.selectAll("path").attr("d", path)
-          .classed("focused", function(d, i) { return d.id == focusedCountry.id ? focused = d : false; });
+          .classed("focused", function(d) { 
+            for(i = 0; i < focusedCountryList.length; i++){
+              
+              if(d.id == focusedCountryList[i]){
+                return focused = d;
+              }
+              if(focusedCountryList.length > 3){
+                return d.id == focusedCountry.id ? focused = d : false;
+              }
+            }    
+            });
         };
       })
       })();

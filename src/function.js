@@ -11,6 +11,7 @@ function renderAlcoholChart(
   countryName
 ) {
   var alcoholOption = {
+    colors: ["#FEB019"],
     chart: {
       events: {
         dataPointSelection: function(event, chartContext, config) {
@@ -157,6 +158,7 @@ function renderAlcoholChart(
 //Obesity chart
 function renderObesityChart(alldata, maleData, femaleData, countryName) {
   var obesityOption = {
+    colors: ["#ff0000"],
     chart: {
       events: {
         dataPointSelection: function(event, chartContext, config) {
@@ -2049,6 +2051,7 @@ function renderInsufThreeStack(firstData, secondData, countryName, year, id) {
 //Render death rate chart
 function renderMortalityChart(alldata, maleData, femaleData, countryName) {
   var insufOption = {
+    colors: ["#020000"],
     chart: {
       events: {
         dataPointSelection: function(event, chartContext, config) {
